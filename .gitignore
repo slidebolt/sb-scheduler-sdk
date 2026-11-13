@@ -1,0 +1,32 @@
+# Environment and local configuration
+.env
+.env.local
+.env.*.local
+config.json
+
+# Go binaries, tests, coverage, and workspaces
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.cover
+coverage.out
+go.work
+go.work.sum
+
+# Build output
+dist/
+build/
+bin/
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
