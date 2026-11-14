@@ -1,4 +1,4 @@
-// Package scheduler is the client contract for the SlideBolt timer service.
+// Package scheduler is the client contract for the SlideBolt schedule service.
 package scheduler
 
 import (
@@ -12,29 +12,26 @@ import (
 )
 
 const (
-	SubjectCreate  = "scheduler.timers.create"
-	SubjectUpdate  = "scheduler.timers.update"
-	SubjectDelete  = "scheduler.timers.delete"
+	SubjectCreate  = "scheduler.schedules.create"
+	SubjectUpdate  = "scheduler.schedules.update"
+	SubjectDelete  = "scheduler.schedules.delete"
 	requestTimeout = 5 * time.Second
 )
 
-type CreateTimerRequest struct {
-	ID    string       `json:"id,omitempty"`
-	Name  string       `json:"name"`
-	Timer domain.Timer `json:"timer"`
+type CreateScheduleRequest struct {
+	ID       string          `json:"id,omitempty"`
+	Name     string          `json:"name"`
+	Schedule domain.Schedule `json:"schedule"`
 }
-
-type UpdateTimerRequest struct {
-	Key   domain.EntityKey `json:"key"`
-	Name  string           `json:"name,omitempty"`
-	Timer domain.Timer     `json:"timer"`
+type UpdateScheduleRequest struct {
+	Key      domain.EntityKey `json:"key"`
+	Name     string           `json:"name,omitempty"`
+	Schedule domain.Schedule  `json:"schedule"`
 }
-
-type DeleteTimerRequest struct {
+type DeleteScheduleRequest struct {
 	Key domain.EntityKey `json:"key"`
 }
-
-type TimerReply struct {
+type ScheduleReply struct {
 	Key   domain.EntityKey `json:"key"`
 	Error string           `json:"error,omitempty"`
 }
@@ -42,9 +39,8 @@ type TimerReply struct {
 type Client struct{ msg messenger.Messenger }
 
 func NewClient(msg messenger.Messenger) *Client { return &Client{msg: msg} }
-
-func (c *Client) CreateTimer(req CreateTimerRequest) (domain.EntityKey, error) {
-	var reply TimerReply
+func (c *Client) CreateSchedule(req CreateScheduleRequest) (domain.EntityKey, error) {
+	var reply ScheduleReply
 	if err := c.request(SubjectCreate, req, &reply); err != nil {
 		return domain.EntityKey{}, err
 	}
@@ -53,9 +49,8 @@ func (c *Client) CreateTimer(req CreateTimerRequest) (domain.EntityKey, error) {
 	}
 	return reply.Key, nil
 }
-
-func (c *Client) UpdateTimer(req UpdateTimerRequest) error {
-	var reply TimerReply
+func (c *Client) UpdateSchedule(req UpdateScheduleRequest) error {
+	var reply ScheduleReply
 	if err := c.request(SubjectUpdate, req, &reply); err != nil {
 		return err
 	}
@@ -64,10 +59,9 @@ func (c *Client) UpdateTimer(req UpdateTimerRequest) error {
 	}
 	return nil
 }
-
-func (c *Client) DeleteTimer(key domain.EntityKey) error {
-	var reply TimerReply
-	if err := c.request(SubjectDelete, DeleteTimerRequest{Key: key}, &reply); err != nil {
+func (c *Client) DeleteSchedule(key domain.EntityKey) error {
+	var reply ScheduleReply
+	if err := c.request(SubjectDelete, DeleteScheduleRequest{Key: key}, &reply); err != nil {
 		return err
 	}
 	if reply.Error != "" {
@@ -75,15 +69,12 @@ func (c *Client) DeleteTimer(key domain.EntityKey) error {
 	}
 	return nil
 }
-
-func (c *Client) EnableTimer(key domain.EntityKey) error {
-	return messenger.NewCommands(c.msg, domain.LookupCommand).Send(key, domain.TimerEnable{})
+func (c *Client) EnableSchedule(key domain.EntityKey) error {
+	return messenger.NewCommands(c.msg, domain.LookupCommand).Send(key, domain.ScheduleEnable{})
 }
-
-func (c *Client) DisableTimer(key domain.EntityKey) error {
-	return messenger.NewCommands(c.msg, domain.LookupCommand).Send(key, domain.TimerDisable{})
+func (c *Client) DisableSchedule(key domain.EntityKey) error {
+	return messenger.NewCommands(c.msg, domain.LookupCommand).Send(key, domain.ScheduleDisable{})
 }
-
 func (c *Client) request(subject string, req, reply any) error {
 	data, err := json.Marshal(req)
 	if err != nil {
